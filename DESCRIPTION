@@ -16,5 +16,6 @@ Imports: readr,
     roxygen2,
     tidyr,
     maps,
-    devtools
+    devtools,
+    testthat
 RoxygenNote: 6.0.1
