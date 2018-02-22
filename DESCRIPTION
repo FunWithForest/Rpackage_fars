@@ -1,0 +1,20 @@
+Package: fars
+Type: Package
+Title: Visualization of Accidents in the USA
+Version: 1.0
+Author: Functions coded by FARS
+Maintainer: Stefan Schmidt <test.user@example.com>
+Description: This package enables users to visualize accidents that occured in the USA.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Imports: readr,
+    dplyr,
+    roxygen2,
+    tidyr,
+    maps,
+    devtools
+RoxygenNote: 6.0.1

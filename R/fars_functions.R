@@ -1,0 +1,193 @@
+
+#Install and load the needed packages:
+# install.packages("devtools")
+# install.packages("testthat")
+# install.packages("roxygen2")
+# install.packages("dplyr")
+# install.packages("readr")
+# install.packages("tidyr")
+# install.packages("maps")
+
+# library(roxygen2)
+# library(dplyr)
+# library(readr)
+# library(tidyr)
+# library(maps)
+# library(devtools)
+# library(testthat)
+
+#-------------------------------------------------------------------------------------------------
+
+#Declaring global variables:
+globalVariables(names = c('STATE','MONTH','year'), package = 'fars', add = TRUE)
+
+#QPDF implementation:
+Sys.setenv(R_QPDF= "F:/Files/Programming/Coursera_Building R Packages/qpdf/bin/qpdf.exe")
+
+
+#' Function \code{fars_read}
+#'
+#' This is a function that tries to read in a specified csv file and outputs it as a table
+#' if the file has been found or exits with a warning message.
+#' Within the data object the content of the csv file is written if filename is found.
+#' The option progress = FALSE prevents from displaying a progress bar.
+#'
+#' @param filename It is a string that should contain the filename
+#'
+#' @return This function returns a data table created by the dplyr package.
+#' The package dplyr and readr are needed in order to make this package work.
+#'
+#' @examples
+#' fars_read(system.file("extdata", "accident_2015.csv.bz2", package = "fars"))
+#'
+#' @importFrom readr read_csv
+#' @importFrom dplyr tbl_df
+#'
+#' @export
+fars_read <- function(filename) {
+        if(!file.exists(filename))
+                stop("file '", filename, "' does not existX")
+                data <- suppressMessages({
+                readr::read_csv(filename, progress = FALSE)
+                })
+        dplyr::tbl_df(data)
+}
+
+
+#' Function \code{make_filename}
+#'
+#' This function takes a year value as input and adds this value into a textstring for the zipped filename.
+#' As this is the last performed operation this is also the return value.
+#' sprintf is a generic C function that pastes a text string (coming from the base package).
+#' The output is created as accident_ followed by the value of the year.
+#' @param year Input of a numeric integer value for the year.
+#'
+#' @return A textstring is returned.
+#'
+#' @examples
+#' make_filename(2015)
+#'
+#' @export
+make_filename <- function(year) {
+        year <- as.integer(year)
+        #changes due to package implementation of raw data:
+        #sprintf("accident_%d.csv.bz2", year)
+        file <- sprintf("accident_%d.csv.bz2", year)
+        system.file("extdata", file, package = "fars")
+}
+
+
+#' Function \code{fars_read_years}
+#'
+#' This function takes a vector of years as input and selects values for month and year row by row.
+#' @param years A vector of years.
+#' file takes the textstring from the \code{make_filename} function.
+#' lapply loops over all years and with the tryCatch statement further changes are made (see below).
+#' dat takes the data of the files from the next filename.
+#' mutate is a function of the dplyr package and in this case it selects month and year.
+#' Importing this function from the dplyr package is needed.
+#'
+#' @return If an invalid year is taken from the selection an error will occur and nothing is returned.
+#' Else the values month and year are returned row by row.
+#'
+#' @examples
+#' fars_read_years(2013:2015)
+#' fars_read_years(2015)
+#'
+#' @importFrom dplyr mutate
+#' @importFrom dplyr select
+#'
+#' @export
+fars_read_years <- function(years) {
+        lapply(years, function(year) {
+                file <- make_filename(year)
+                tryCatch({
+                        dat <- fars_read(file)
+                        dplyr::mutate(dat, year = year) %>%
+                                dplyr::select(MONTH, year)
+                }, error = function(e) {
+                        warning("invalid year: ", year)
+                        return(NULL)
+                })
+        })
+}
+
+
+#' Function \code{fars_summarize_years}
+#'
+#' This function takes the returned values of other functions and summarizes the values by year and month.
+#' @param years In the function call one ore more years are expected to be submitted.
+
+#' The dat_list object takes the input of the \code{fars_read_years} function and delivers the years value
+#' to it with the call.
+#' bin_rows comes from the dplyr package and takes the dat_list object and groups it by year and month.
+#' spread comes from the tidyr package and reorganizes the data according to year and the summarized value of n.
+#'
+#' @return A table with the columns for the months and each year.
+#'
+#' @examples
+#' fars_summarize_years(2014:2015)
+#' fars_summarize_years(2015)
+#'
+#' @importFrom dplyr bind_rows
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarize
+#' @importFrom tidyr spread
+#'
+#' @export
+fars_summarize_years <- function(years) {
+        dat_list <- fars_read_years(years)
+        dplyr::bind_rows(dat_list) %>%
+                dplyr::group_by(year, MONTH) %>%
+                dplyr::summarize(n = n()) %>%
+                tidyr::spread(year, n)
+}
+
+#' Function \code{fars_map_state}
+#'
+#' This function takes the state number and a specific year as arguments and prints out a map of accidents in the selected state.
+
+#' @param state.num This is a single integer value with the state number from the input.
+#' @param year This value is an input value that gives out either a single year or a range of several years.
+#'
+#' @return Either a message is given out when there are no accidents or a map of the state and its accidents is shown.
+#'
+#' @examples
+#' fars_map_state(1,2015)
+#'
+#' @importFrom dplyr filter
+#' @importFrom maps map
+#' @importFrom graphics points
+#'
+#' @export
+fars_map_state <- function(state.num, year) {
+        filename <- make_filename(year)
+        data <- fars_read(filename)
+        state.num <- as.integer(state.num)
+
+        if(!(state.num %in% unique(data$STATE)))
+                stop("invalid STATE number: ", state.num)
+        data.sub <- dplyr::filter(data, STATE == state.num)
+        if(nrow(data.sub) == 0L) {
+                message("no accidents to plot")
+                return(invisible(NULL))
+        }
+        is.na(data.sub$LONGITUD) <- data.sub$LONGITUD > 900
+        is.na(data.sub$LATITUDE) <- data.sub$LATITUDE > 90
+        with(data.sub, {
+                maps::map("state", ylim = range(LATITUDE, na.rm = TRUE),
+                          xlim = range(LONGITUD, na.rm = TRUE))
+                graphics::points(LONGITUD, LATITUDE, pch = 46)
+        })
+}
+
+#Coursera Week 4 PGA:
+#use_vignette("function_details")
+
+#Add a test using the testthat package:
+#testthat::expect_that(fars_map_state(1,2019), throws_error("file 'accident_2019.csv.bz2' does not existX"))
+
+#devtools::load_all()
+#devtools::check()
+
+

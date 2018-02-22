@@ -1,0 +1,49 @@
+---
+title: "fars package for visualizing accidents in the USA"
+author: "Stefan Schmidt"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+fars version 1.0 gives the package user the ability to plot accidents that happened in the USA.
+FARS stands for Fatality Analysis Reporting System.
+The Data that is used comes from the US National Highway Traffic Safety Administration's FARS.
+
+Among the main function for plotting there are several sub functions i.e. for reading in the data files
+for the specific years, serving as an input for the main function. 
+
+## Instructions for using the package
+
+First off, you will need to have data for the year(s) you want to visualize.
+To get the data you can either download it from the Coursera course "Building R Packages" in the link
+given in Week 2's PGA assignment or from the following link of the institution:
+https://www.nhtsa.gov/research-data/fatality-analysis-reporting-system-fars
+
+Once you have the zipped data file unpack it in your RStudio working directory.
+There should be files now with the ".csv.bz2" ending.
+
+Now you can use the main function named fars_map_state and include the desired state as the first argument,
+followed by the year(s) to select i.e. fars_map_state(1,2015).
+
+
+## Github
+
+As Github is most commonly used and predifend by the PGA the package can be found under 
+https://github.com/FunWithForest.
+
+
+
+
