@@ -22,7 +22,7 @@
 globalVariables(names = c('STATE','MONTH','year'), package = 'fars', add = TRUE)
 
 #QPDF implementation:
-Sys.setenv(R_QPDF= "F:/Files/Programming/Coursera_Building R Packages/qpdf/bin/qpdf.exe")
+Sys.setenv(R_QPDF= "F:/Files/Programming/Coursera_Building_R_Packages/qpdf/bin/qpdf.exe")
 
 
 #' Function \code{fars_read}
