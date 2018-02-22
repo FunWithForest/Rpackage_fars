@@ -9,13 +9,13 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: true
 Suggests: knitr,
-    rmarkdown,
-    testthat
+    rmarkdown
 VignetteBuilder: knitr
 Imports: readr,
     dplyr,
     roxygen2,
     tidyr,
     maps,
-    devtools
+    devtools,
+    testthat
 RoxygenNote: 6.0.1
